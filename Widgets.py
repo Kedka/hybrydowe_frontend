@@ -9,12 +9,14 @@ class LoginWidget(QWidget):
         self.username.setPlaceholderText('User ID')
         self.user_password = QLineEdit()
         self.user_password.setPlaceholderText('Password')
-        self.button = QPushButton('Login')
+        self.button_login = QPushButton('Login')
 
         layout.addWidget(self.username)
         layout.addWidget(self.user_password)
-        layout.addWidget(self.button)
+        layout.addWidget(self.button_login)
         self.setLayout(layout)
+
+        self.button_login.clicked.connect(parent.login)
 
 
 class AdminWidget(QWidget):
