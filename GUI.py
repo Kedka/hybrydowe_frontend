@@ -1,5 +1,5 @@
-from PyQt5.QtWidgets import QMainWindow, QStackedWidget
-from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QMainWindow, QStackedWidget, QDesktopWidget
+from PyQt5.QtCore import Qt, QRect
 
 from Widgets import LoginWidget, AdminWidget
 
@@ -7,6 +7,7 @@ from Widgets import LoginWidget, AdminWidget
 class LibraryApp(QMainWindow):
     def __init__(self, parent=None):
         super(LibraryApp, self).__init__(parent, flags=Qt.Window)
+        self.setWindowTitle('Library app')
         self.centralWidget = QStackedWidget()
         self.setCentralWidget(self.centralWidget)
 
