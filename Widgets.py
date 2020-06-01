@@ -16,7 +16,7 @@ class LoginWidget(QWidget):
         layout.addWidget(self.button_login)
         self.setLayout(layout)
 
-        self.button_login.clicked.connect(parent.login)
+        self.button_login.clicked.connect(parent.request_login)
 
 
 class AdminWidget(QWidget):
@@ -43,7 +43,7 @@ class AdminWidget(QWidget):
 
         self.setLayout(layout)
 
-        self.button_logout.clicked.connect(parent.logout)
+        self.button_logout.clicked.connect(parent.request_logout)
 
 
 # Nie wiem czy nie latwiej bedzie zamiast takich przyciskow to po prostu
