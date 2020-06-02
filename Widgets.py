@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QWidget, QPushButton, QLineEdit, QVBoxLayout, QListWidget, QGridLayout
+from PyQt5.QtWidgets import QWidget, QPushButton, QLineEdit, QVBoxLayout, QGridLayout, QTreeWidget, QTreeWidgetItem
 
 
 class LoginWidget(QWidget):
@@ -28,10 +28,11 @@ class AdminWidget(QWidget):
         self.button_delete_book = QPushButton('Delete book')
         self.button_logout = QPushButton('Log out')
 
-        self.list = QListWidget()
+        self.list = QTreeWidget()
+        self.list.setHeaderLabels(['Author', 'Title'])
+        self.list.setIndentation(0)
 
-        books = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L']
-        self.list.addItems(books)
+        self.list.addTopLevelItem(QTreeWidgetItem(['A', 'B', 'C']))
 
         layout = QGridLayout()
         layout.addWidget(self.button_add_user, 0, 0)
