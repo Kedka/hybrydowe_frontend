@@ -1,8 +1,8 @@
 from PyQt5.QtWidgets import QMainWindow, QStackedWidget, QDesktopWidget, QStatusBar, QLabel
 from PyQt5.QtCore import Qt, QRect, pyqtSlot, QThreadPool
 
+from Runnable import RequestLogoutRunnable, RequestLoginRunnable
 from Widgets import LoginWidget, AdminWidget
-from Services import RequestLoginRunnable, RequestLogoutRunnable
 
 
 class LibraryApp(QMainWindow):

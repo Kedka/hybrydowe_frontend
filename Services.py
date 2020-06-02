@@ -1,28 +1,61 @@
 import requests
+from PyQt5.QtCore import QThreadPool
 
-from PyQt5.QtCore import Qt, QRunnable, QMetaObject, Q_ARG
-
-
-class RequestLoginRunnable(QRunnable):
-    def __init__(self, target):
-        QRunnable.__init__(self)
-        self.url = 'https://api.github.com/events'
-        self.target = target
-
-    def run(self):
-        r = requests.get(self.url)
-        QMetaObject.invokeMethod(self.target, "login",
-                                 Qt.QueuedConnection,
-                                 Q_ARG(str, r.text))
+from Model import Book
+from Runnable import RequestGetRunnable, RequestPostRunnable
 
 
-class RequestLogoutRunnable(QRunnable):
-    def __init__(self, target):
-        QRunnable.__init__(self)
-        self.target = target
-        self.url = 'https://api.github.com/events'
+class Service:
+    def __init__(self, parent):
+        self.parent = parent
 
-    def run(self):
-        r = requests.get(self.url)
-        QMetaObject.invokeMethod(self.target, "logout",
-                                 Qt.QueuedConnection)
+    def check_response(self, response):
+        if response.status_code != requests.codes.ok:
+            raise ConnectionError()
+        self.notify_parent()
+
+
+class BookService(Service):
+    def __init__(self, parent):
+        super(BookService, self).__init__(parent)
+        self.books = []
+
+    def get_books(self):
+        runnable = RequestGetRunnable(self, 'parse_books', 'books')
+        QThreadPool.globalInstance().start(runnable)
+
+    def add_book(self, book):
+        runnable = RequestPostRunnable(self, 'check_response', 'book/add', vars(book))
+        QThreadPool.globalInstance().start(runnable)
+
+    def delete_book(self, book):
+        runnable = RequestPostRunnable(self, 'check_response', 'book/remove', vars(book))
+        QThreadPool.globalInstance().start(runnable)
+
+    def borrow_book(self, book):
+        runnable = RequestPostRunnable(self, 'check_response', 'book/borrow', vars(book))
+        QThreadPool.globalInstance().start(runnable)
+
+    def return_book(self, book):
+        runnable = RequestPostRunnable(self, 'check_response', 'book/borrow', vars(book))
+        QThreadPool.globalInstance().start(runnable)
+
+    def parse_books(self, books_json):
+        self.notify_parent()
+
+    def notify_parent(self):
+        # self.parent.some_method
+        pass
+
+
+class AuthorService(Service):
+    def __init__(self, parent):
+        super(AuthorService, self).__init__(parent)
+        self.authors = []
+
+    def get_authors(self):
+        runnable = RequestGetRunnable(self, 'parse_authors', 'authors')
+        QThreadPool.globalInstance().start(runnable)
+
+    def parse_authors(self, authors_json):
+        print(authors_json)

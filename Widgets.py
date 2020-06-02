@@ -1,5 +1,7 @@
 from PyQt5.QtWidgets import QWidget, QPushButton, QLineEdit, QVBoxLayout, QListWidget, QGridLayout
 
+from Services import AuthorService
+
 
 class LoginWidget(QWidget):
     def __init__(self, parent=None):
@@ -27,6 +29,9 @@ class AdminWidget(QWidget):
         self.button_add_book = QPushButton('Add book')
         self.button_delete_book = QPushButton('Delete book')
         self.button_logout = QPushButton('Log out')
+
+        self.author_service = AuthorService(self)
+        self.author_service.get_authors()
 
         self.list = QListWidget()
 
