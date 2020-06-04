@@ -36,11 +36,9 @@ class AdminWidget(QWidget):
         self.list.addTopLevelItem(QTreeWidgetItem(['A', 'B', 'C']))
         self.list.addTopLevelItem(QTreeWidgetItem(['D' , 'E', 'F']))
 
-        #self.list.itemClicked.connect(self.on_item_clicked())
         self.list.itemSelectionChanged.connect(self.details)
-        #print(details)
-        # details = self.list.selectedItems()
-        # print(details)
+  
+        self.parent = parent
         self.button_add_user.clicked.connect(parent.add_user)
         self.button_delete_user.clicked.connect(parent.delete_user)
         self.button_add_book.clicked.connect(parent.add_book)
@@ -60,19 +58,35 @@ class AdminWidget(QWidget):
 
     def details(self):
         getSelected = self.list.selectedItems()
-        #print(getSelected)
-        #return getSelected
         if getSelected:
             baseNode = getSelected[0]
             getAuthor = baseNode.text(0)
             getName = baseNode.text(1)
 
-            parent.add_book
-            #return getAuthor, getName
-            #print(getChildNode)
-            #print(baseNode)
-            #print(getChildNode[1])
-            #self.parent.show_detail(getAuthor, getName)
+            self.parent.show_detail()
+
+
+class BookDetails(QWidget):
+    def __init__(self, parent = None):
+        super(BookDetails, self).__init__(parent)
+
+        # idk how to pass the details here
+        self.author = QLabel('Author')
+        self.name = QLabel('Title')
+        self.place_order = QPushButton('Place order')
+        self.button_back = QPushButton('Back')
+
+        self.place_order.clicked.connect(parent.place_order)
+        self.button_back.clicked.connect(parent.back)
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.author)
+        layout.addWidget(self.name)
+        layout.addWidget(self.place_order)
+        layout.addWidget(self.button_back)
+
+        self.setLayout(layout)
+
 
 class AddUser(QWidget):
     def __init__(self, parent = None):
@@ -159,22 +173,7 @@ class DeleteBook(QWidget):
         
         self.setLayout(layout)
 
-class BookDetails(QWidget):
-    def __init__(self, author, name, parent = None):
-        super(BookDetails, self).__init__(parent)
 
-        self.author = QLabel(author)
-        self.name = QLabel(name)
-
-        layout = QVBoxLayout()
-        layout.addWidget(self.author)
-        layout.addWidget(self.name)
-
-        self.setWindowTitle("Details")
-
-    # @QtCore.pyqtSlot(QtWidgets.QTreeWidgetItem, int)
-    # def on_item_clicked(self, item, col):
-    #      print(item, col)
 
 
 # class UserWidget(QWidget):

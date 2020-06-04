@@ -41,11 +41,8 @@ class LibraryApp(QMainWindow):
         print('Add user')
     
     def confirm_reg(self):
-        #if s1 == s2:
         print('Confirmed')
-        center = self.geometry().center()
-        self.centralWidget.removeWidget(self.centralWidget.currentWidget())
-        self.adjust_geometry(center)
+        self.back()
 
     def delete_user(self):
         center = self.geometry().center()
@@ -61,9 +58,10 @@ class LibraryApp(QMainWindow):
         self.centralWidget.addWidget(add_book)
         self.centralWidget.setCurrentWidget(add_book)
         self.adjust_geometry(center)
-        
+
     def add_book_to_db(self):
         print('Book added')
+        self.back()
 
     def delete_book(self):
         center = self.geometry().center()
@@ -78,11 +76,17 @@ class LibraryApp(QMainWindow):
         self.centralWidget.removeWidget(self.centralWidget.currentWidget())
         self.adjust_geometry(center)
 
-    def show_detail(self, author, name, date):
+    def show_detail(self):
         center = self.geometry().center()
-        book_detail = BookDetails(self, author, name)
+        book_detail = BookDetails(self)
+        self.centralWidget.addWidget(book_detail)
         self.centralWidget.setCurrentWidget(book_detail)
         self.adjust_geometry(center)
+        print('Details')
+
+    def place_order(self):
+        print('Order')
+        self.back()
 
     def adjust_geometry(self, center):
         self.adjustSize()
