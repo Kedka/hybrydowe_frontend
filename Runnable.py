@@ -2,30 +2,38 @@ import requests
 from PyQt5.QtCore import QRunnable, QMetaObject, Qt, Q_ARG
 
 
-class RequestGetRunnable(QRunnable):
+class RequestRunnable(QRunnable):
     def __init__(self, parent, callback, url):
         QRunnable.__init__(self)
         self.url = 'https://library-app3.herokuapp.com/' + url
         self.parent = parent
         self.callback = callback
 
+
+class RequestGetRunnable(RequestRunnable):
     def run(self):
         r = requests.get(self.url)
-        print(type(r.text))
-        getattr(self.parent, self.callback)(r.text)
+        getattr(self.parent, self.callback)(r)
 
 
-class RequestPostRunnable(QRunnable):
+class RequestPostRunnable(RequestRunnable):
     def __init__(self, parent, callback, url, data):
-        QRunnable.__init__(self)
-        self.url = 'https://library-app3.herokuapp.com/' + url
-        self.parent = parent
-        self.callback = callback
+        super(RequestPostRunnable, self).__init__(parent, callback, url)
         self.data = data
 
     def run(self):
         r = requests.post(self.url, json=self.data)
-        getattr(self.parent, self.callback)(r.text)
+        getattr(self.parent, self.callback)(self.data, r)
+
+
+class RequestDeleteRunnable(RequestRunnable):
+    def __init__(self, parent, callback, url, params):
+        super(RequestDeleteRunnable, self).__init__(parent, callback, url)
+        self.params = params
+
+    def run(self):
+        r = requests.post(self.url, params={'id': self.params.get('id')})
+        getattr(self.parent, self.callback)(self.params, r)
 
 
 class RequestLoginRunnable(QRunnable):
