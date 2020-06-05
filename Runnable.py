@@ -3,12 +3,11 @@ from PyQt5.QtCore import QRunnable, QMetaObject, Qt, Q_ARG
 
 
 class RequestRunnable(QRunnable):
-    def __init__(self, parent, session, callback, url):
+    def __init__(self, parent, callback, url):
         QRunnable.__init__(self)
         self.url = 'https://library-app3.herokuapp.com/' + url
         self.parent = parent
         self.callback = callback
-        self.session = session
 
 
 class RequestGetRunnable(RequestRunnable):
@@ -18,8 +17,8 @@ class RequestGetRunnable(RequestRunnable):
 
 
 class RequestPostRunnable(RequestRunnable):
-    def __init__(self, parent, session, callback, url, data):
-        super(RequestPostRunnable, self).__init__(parent, session, callback, url)
+    def __init__(self, parent, callback, url, data):
+        super(RequestPostRunnable, self).__init__(parent, callback, url)
         self.data = data
 
     def run(self):
@@ -28,8 +27,8 @@ class RequestPostRunnable(RequestRunnable):
 
 
 class RequestDeleteRunnable(RequestRunnable):
-    def __init__(self, parent, session, callback, url, params):
-        super(RequestDeleteRunnable, self).__init__(parent, session, callback, url)
+    def __init__(self, parent, callback, url, params):
+        super(RequestDeleteRunnable, self).__init__(parent, callback, url)
         self.params = params
 
     def run(self):

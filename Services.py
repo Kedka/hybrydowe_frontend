@@ -28,7 +28,6 @@ class AuthorizationService(Service):
         Service.session = requests.Session()
         runnable = RequestPostRunnable(
             self,
-            Service.session,
             'handle_login',
             'user/login',
             {'username': login, 'password': password}
@@ -36,7 +35,7 @@ class AuthorizationService(Service):
         QThreadPool.globalInstance().start(runnable)
 
     def handle_login(self, data, response):
-        Service.check_response(response)
+        self.check_response(response)
         response = response.json()
         self.user_id = response.get('id')
         self.user_type = response.get('type')
@@ -46,7 +45,6 @@ class AuthorizationService(Service):
     def logout(self):
         runnable = RequestPostRunnable(
             self,
-            Service.session,
             'handle_login',
             'user/logout',
             None
@@ -54,8 +52,8 @@ class AuthorizationService(Service):
         QThreadPool.globalInstance().start(runnable)
 
     def handle_logout(self, data, response):
-        Service.check_response(response)
-        Service.session = None
+        self.check_response(response)
+        self.session = None
         self.parent.logout()
 
 
@@ -68,21 +66,19 @@ class BookService(Service):
     def get_books(self):
         runnable = RequestGetRunnable(
             self,
-            Service.session,
             'handle_get_books',
             'books'
         )
         QThreadPool.globalInstance().start(runnable)
 
     def handle_get_books(self, response):
-        Service.check_response(response)
+        self.check_response(response)
         self.books = response.json()
         self.notify_parent()
 
     def add_book(self, book):
         runnable = RequestPostRunnable(
             self,
-            Service.session,
             'handle_add_book',
             'book/add',
             book
@@ -90,7 +86,7 @@ class BookService(Service):
         QThreadPool.globalInstance().start(runnable)
 
     def handle_add_book(self, data, response):
-        Service.check_response(response)
+        self.check_response(response)
         db_id = response.json().get('message')[20:]
         data.update({'id': db_id, 'assignUser': None})
         self.books.append(data)
@@ -99,7 +95,6 @@ class BookService(Service):
     def delete_book(self, book):
         runnable = RequestDeleteRunnable(
             self,
-            Service.session,
             'handle_delete_book',
             'book/delete',
             book
@@ -107,7 +102,7 @@ class BookService(Service):
         QThreadPool.globalInstance().start(runnable)
 
     def handle_delete_book(self, data, response):
-        Service.check_response(response)
+        self.check_response(response)
         self.books.remove(data)
         self.notify_parent()
 
@@ -122,8 +117,8 @@ class BookService(Service):
         QThreadPool.globalInstance().start(runnable)
 
     def handle_borrow_book(self, data, response):
-        Service.check_response(response)
-        self.books[self.books.index(data)].update({'assignUser': Service.user_id})
+        self.check_response(response)
+        self.books[self.books.index(data)].update({'assignUser': self.user_id})
         self.notify_parent()
 
     def return_book(self, book):
@@ -136,7 +131,7 @@ class BookService(Service):
         QThreadPool.globalInstance().start(runnable)
 
     def handle_return_book(self, data, response):
-        Service.check_response(response)
+        self.check_response(response)
         self.books[self.books.index(data)].update({'assignUser': None})
         self.notify_parent()
 
@@ -152,13 +147,12 @@ class UserService(Service):
 
     def get_users(self):
         runnable = RequestGetRunnable(self,
-                                      Service.session,
                                       'handle_get_users',
                                       'users')
         QThreadPool.globalInstance().start(runnable)
 
     def handle_get_users(self, response):
-        Service.check_response(response)
+        self.check_response(response)
         self.users = response.json()
         self.notify_parent()
 

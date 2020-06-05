@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import QWidget, QPushButton, QLineEdit, QVBoxLayout, QTreeWidget, QTreeWidgetItem, \
     QComboBox, QHBoxLayout, QTabWidget, QListWidget
 
+from Dialogs import AddBookDialog
 from Services import BookService, UserService
 
 
@@ -137,7 +138,10 @@ class UserWidget(QWidget):
             self.button_return_book.setEnabled(False)
 
     def add_book(self):
-        pass
+        ok, book = AddBookDialog.get_result()
+        if not ok:
+            return
+        self.book_service.add_book(book)
 
 
 class AdminWidget(QTabWidget):
