@@ -3,11 +3,12 @@ from PyQt5.QtCore import QRunnable, QMetaObject, Qt, Q_ARG
 
 
 class RequestRunnable(QRunnable):
-    def __init__(self, parent, callback, url):
+    def __init__(self, parent, session, callback, url):
         QRunnable.__init__(self)
         self.url = 'https://library-app3.herokuapp.com/' + url
         self.parent = parent
         self.callback = callback
+        self.session = session
 
 
 class RequestGetRunnable(RequestRunnable):
@@ -17,8 +18,8 @@ class RequestGetRunnable(RequestRunnable):
 
 
 class RequestPostRunnable(RequestRunnable):
-    def __init__(self, parent, callback, url, data):
-        super(RequestPostRunnable, self).__init__(parent, callback, url)
+    def __init__(self, parent, session, callback, url, data):
+        super(RequestPostRunnable, self).__init__(parent, session, callback, url)
         self.data = data
 
     def run(self):
@@ -27,12 +28,12 @@ class RequestPostRunnable(RequestRunnable):
 
 
 class RequestDeleteRunnable(RequestRunnable):
-    def __init__(self, parent, callback, url, params):
-        super(RequestDeleteRunnable, self).__init__(parent, callback, url)
+    def __init__(self, parent, session, callback, url, params):
+        super(RequestDeleteRunnable, self).__init__(parent, session, callback, url)
         self.params = params
 
     def run(self):
-        r = requests.post(self.url, params={'id': self.params.get('id')})
+        r = requests.delete(self.url, params={'id': self.params['id']})
         getattr(self.parent, self.callback)(self.params, r)
 
 
@@ -44,9 +45,12 @@ class RequestLoginRunnable(QRunnable):
 
     def run(self):
         r = requests.get(self.url)
-        QMetaObject.invokeMethod(self.target, "login",
-                                 Qt.QueuedConnection,
-                                 Q_ARG(str, r.text))
+        QMetaObject.invokeMethod(
+            self.target,
+            "login",
+            Qt.QueuedConnection,
+            Q_ARG(str, r.text)
+        )
 
 
 class RequestLogoutRunnable(QRunnable):
@@ -57,5 +61,8 @@ class RequestLogoutRunnable(QRunnable):
 
     def run(self):
         r = requests.get(self.url)
-        QMetaObject.invokeMethod(self.target, "logout",
-                                 Qt.QueuedConnection)
+        QMetaObject.invokeMethod(
+            self.target,
+            "logout",
+            Qt.QueuedConnection
+        )

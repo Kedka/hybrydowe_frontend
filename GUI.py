@@ -1,19 +1,18 @@
-from PyQt5.QtWidgets import QMainWindow, QStackedWidget, QDesktopWidget, QStatusBar, QLabel
-from PyQt5.QtCore import Qt, QRect, pyqtSlot, QThreadPool
+from PyQt5.QtWidgets import QMainWindow, QStackedWidget, QDesktopWidget, QStatusBar
+from PyQt5.QtCore import Qt, QRect
 
-from Runnable import RequestLogoutRunnable, RequestLoginRunnable
-from Widgets import LoginWidget, AdminWidget
+from Widgets import *
+from Services import AuthorizationService
 
 
 class LibraryApp(QMainWindow):
     def __init__(self, parent=None):
         super(LibraryApp, self).__init__(parent, flags=Qt.Window)
-        self.setWindowTitle('Library app')
-        self.centralWidget = QStackedWidget()
-        self.setCentralWidget(self.centralWidget)
+        self.authorization_service = AuthorizationService(self)
 
-        login_widget = LoginWidget(self)
-        self.centralWidget.addWidget(login_widget)
+        self.setWindowTitle('Library app')
+        self.setCentralWidget(QStackedWidget())
+        self.centralWidget().addWidget(LoginWidget(self))
 
         self.status_bar = QStatusBar()
         self.setStatusBar(self.status_bar)
@@ -22,32 +21,33 @@ class LibraryApp(QMainWindow):
         screen_center = desktop.screenGeometry().center()
         self.adjust_geometry(screen_center)
 
-    def request_login(self):
+    def request_login(self, username, password):
         self.status_bar.showMessage('Logging in')
-        runnable = RequestLoginRunnable(self)
-        QThreadPool.globalInstance().start(runnable)
+        self.centralWidget().widget(0).blockSignals(True)
+        self.login('user')
+        # self.authorization_service.login(username, password)
 
-    @pyqtSlot(str)
-    def login(self, data):
-        print(data)
+    def login(self, user_type):
+        # print(user_type)
+        self.centralWidget().widget(0).blockSignals(False)
         center = self.geometry().center()
-        admin_widget = AdminWidget(self)
-        self.centralWidget.addWidget(admin_widget)
-        self.centralWidget.setCurrentWidget(admin_widget)
+        if user_type == 'admin':
+            self.centralWidget().addWidget(AdminWidget(self))
+        else:
+            self.centralWidget().addWidget(UserWidget(self))
+        self.centralWidget().setCurrentIndex(1)
         self.adjust_geometry(center)
         self.status_bar.clearMessage()
-        print('Logged in')
 
     def request_logout(self):
-        runnable = RequestLogoutRunnable(self)
-        QThreadPool.globalInstance().start(runnable)
+        # runnable = RequestLogoutRunnable(self)
+        # QThreadPool.globalInstance().start(runnable)
+        self.logout()
 
-    @pyqtSlot()
     def logout(self):
         center = self.geometry().center()
-        self.centralWidget.removeWidget(self.centralWidget.currentWidget())
+        self.centralWidget().removeWidget(self.centralWidget().widget(1))
         self.adjust_geometry(center)
-        print('Logged out')
 
     def add_user(self):
         center = self.geometry().center()
