@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QMainWindow, QStackedWidget, QDesktopWidget, QStatusBar
-from PyQt5.QtCore import Qt, QRect, pyqtSlot
+from PyQt5.QtCore import Qt, QRect
 
 from Widgets import *
 from Services import AuthorizationService
@@ -22,6 +22,7 @@ class LibraryApp(QMainWindow):
         self.adjust_geometry(screen_center)
 
     def request_login(self, username, password):
+        self.status_bar.clearMessage()
         self.status_bar.showMessage('Logging in')
         self.centralWidget().widget(0).blockSignals(True)
         self.authorization_service = AuthorizationService(self)
@@ -29,8 +30,12 @@ class LibraryApp(QMainWindow):
 
     @pyqtSlot(str)
     def login(self, user_type):
-        self.centralWidget().widget(0).blockSignals(True)
         self.centralWidget().widget(0).clear()
+        if len(user_type) == 0:
+            self.centralWidget().widget(0).blockSignals(False)
+            self.centralWidget().widget(0).clear()
+            self.status_bar.showMessage('Invalid username or password')
+            return
         center = self.geometry().center()
         if user_type == 'A':
             self.centralWidget().addWidget(AdminWidget(self))

@@ -7,6 +7,7 @@ from Runnable import RequestGetRunnable, RequestPostRunnable, RequestDeleteRunna
 class Service:
     session = None
     user_id = None
+    username = None
 
     def __init__(self, parent):
         self.parent = parent
@@ -22,7 +23,6 @@ class AuthorizationService(Service):
     def __init__(self, parent):
         super(AuthorizationService, self).__init__(parent)
         self.user_type = None
-        self.username = None
 
     def login(self, login, password):
         Service.session = requests.Session()
@@ -36,11 +36,21 @@ class AuthorizationService(Service):
         QThreadPool.globalInstance().start(runnable)
 
     def handle_login(self, data, response):
+        print(response.status_code, type(response.status_code))
+        if response.status_code == 403:
+            print('elo')
+            QMetaObject.invokeMethod(
+                self.parent,
+                "login",
+                Qt.QueuedConnection,
+                Q_ARG(str, None)
+            )
+            return
         self.check_response(response)
         response = response.json()
         Service.user_id = response.get('id')
+        Service.username = response.get('username')
         self.user_type = response.get('type')
-        self.username = response.get('username')
         QMetaObject.invokeMethod(
             self.parent,
             "login",
@@ -59,7 +69,9 @@ class AuthorizationService(Service):
 
     def handle_logout(self, response):
         self.check_response(response)
-        self.session = None
+        Service.session = None
+        Service.user_id = None
+        Service.username = None
         QMetaObject.invokeMethod(
             self.parent,
             "logout",

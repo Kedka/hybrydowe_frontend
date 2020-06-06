@@ -127,7 +127,8 @@ class UserWidget(QWidget):
         if self.filter_choice.currentIndex() == 1:
             self.__books = filter(lambda x: True if x['assignUser'] is None else False, self.__books)
         if self.filter_choice.currentIndex() == 2:
-            self.__books = filter(lambda x: True if x['assignUser'] == self.user_id else False, self.__books)
+            self.__books = filter(lambda x: True if x['assignUser'] is not None \
+                and x['assignUser']['id'] == self.user_id else False, self.__books)
         self.__books = list(self.__books)
 
     def book_choice(self, index):
@@ -198,6 +199,7 @@ class AdminWidget(QTabWidget):
             )
         )
         self.user_search_input.textChanged.connect(self.refresh)
+        self.user_list.currentRowChanged.connect(self.user_choice)
         self.button_logout.clicked.connect(parent.request_logout)
 
     @pyqtSlot()
@@ -212,6 +214,12 @@ class AdminWidget(QTabWidget):
         if search is not None:
             self.__users = filter(lambda x: True if x['username'].lower().find(search) > -1 else False, self.__users)
         self.__users = list(self.__users)
+
+    def user_choice(self, index):
+        if self.__users[index]['username'] == UserService.username:
+            self.button_remove_user.setEnabled(False)
+        else:
+            self.button_remove_user.setEnabled(True)
 
     def add_user(self):
         ok, user = AddUserDialog().get_result(self)
