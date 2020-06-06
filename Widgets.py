@@ -2,7 +2,7 @@ from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import QWidget, QPushButton, QLineEdit, QVBoxLayout, QTreeWidget, QTreeWidgetItem, \
     QComboBox, QHBoxLayout, QTabWidget, QListWidget
 
-from Dialogs import AddBookDialog
+from Dialogs import AddBookDialog, AddUserDialog
 from Services import BookService, UserService
 
 
@@ -186,6 +186,12 @@ class AdminWidget(QTabWidget):
         self.addTab(widget, 'Users manager')
         self.addTab(UserWidget(parent), 'Books manager')
 
+        self.button_add_user.clicked.connect(self.add_book)
+        self.button_remove_user.clicked.connect(
+            lambda: self.user_service.delete_book(
+                self.__users[self.user_list.currentIndex()]
+            )
+        )
         self.user_search_input.textChanged.connect(self.refresh)
         self.button_logout.clicked.connect(parent.request_logout)
 
@@ -202,31 +208,8 @@ class AdminWidget(QTabWidget):
             self.__users = filter(lambda x: True if x['username'].lower().find(search) > -1 else False, self.__users)
         self.__users = list(self.__users)
 
-
-class AddUser(QWidget):
-    def __init__(self, parent=None):
-        super(AddUser, self).__init__(parent)
-
-        self.username = QLineEdit()
-        self.passwd = QLineEdit()
-        self.confirm_passwd = QLineEdit()
-
-        self.username.setPlaceholderText('Username')
-        self.passwd.setPlaceholderText('Password')
-        self.confirm_passwd.setPlaceholderText('Confirm password')
-
-        self.button_register = QPushButton('Register')
-        self.button_back = QPushButton('Back')
-
-        self.button_register.clicked.connect(parent.confirm_reg)
-        self.button_back.clicked.connect(parent.back)
-
-        layout = QVBoxLayout()
-        layout.addWidget(self.username)
-        layout.addWidget(self.passwd)
-        layout.addWidget(self.confirm_passwd)
-        layout.addWidget(self.button_register)
-        layout.addWidget(self.button_back)
-
-        self.setLayout(layout)
-
+    def add_user(self):
+        ok, user = AddUserDialog().get_result(self)
+        if not ok:
+            return
+        self.user_service.add_user(user)

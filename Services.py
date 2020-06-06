@@ -14,7 +14,8 @@ class Service:
     @staticmethod
     def check_response(response):
         if response.status_code != requests.codes.ok:
-            raise ConnectionError()
+            print(response.text)
+            raise ConnectionError(response.status_code)
 
 
 class AuthorizationService(Service):

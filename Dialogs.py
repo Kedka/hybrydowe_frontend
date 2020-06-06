@@ -65,3 +65,55 @@ class AddBookDialog(QDialog):
         result = dialog.exec_()
         book = dialog.get_values()
         return result, book
+
+
+class AddUserDialog(QDialog):
+    def __init__(self, parent=None):
+        super(AddUserDialog, self).__init__(parent)
+
+        self.username = QLineEdit()
+        self.password = QLineEdit()
+        self.confirm_password = QLineEdit()
+
+        self.username.setPlaceholderText('Username')
+        self.passwd.setPlaceholderText('Password')
+        self.confirm_passwd.setPlaceholderText('Confirm password')
+
+        inputs = QFormLayout()
+        inputs.addRow('Username:', self.username)
+        inputs.addRow('Password:', self.password)
+        inputs.addRow('Confirm password:', self.confirm_password)
+
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
+            Qt.Horizontal,
+            self
+        )
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+
+        self.button_accept = buttons.buttons()
+
+        layout = QVBoxLayout()
+        layout.addLayout(inputs)
+        layout.addWidget(buttons)
+
+        self.setLayout(layout)
+
+        self.username.clicked.connect(self.validate)
+        self.password.clicked.connect(self.validate)
+        self.confirm_password.clicked.connect(self.validate)
+
+    def validate(self):
+        print(self.button_accept)
+
+    def get_values(self):
+        return {'username': self.username.text(),
+                'password': self.password.text()}
+
+    @staticmethod
+    def get_result(parent=None):
+        dialog = AddUserDialog(parent)
+        result = dialog.exec_()
+        user = dialog.get_values()
+        return result, user
