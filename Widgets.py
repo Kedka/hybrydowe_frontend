@@ -186,10 +186,10 @@ class AdminWidget(QTabWidget):
         self.addTab(widget, 'Users manager')
         self.addTab(UserWidget(parent), 'Books manager')
 
-        self.button_add_user.clicked.connect(self.add_book)
+        self.button_add_user.clicked.connect(self.add_user)
         self.button_remove_user.clicked.connect(
-            lambda: self.user_service.delete_book(
-                self.__users[self.user_list.currentIndex()]
+            lambda: self.user_service.delete_user(
+                self.__users[self.user_list.currentRow()]
             )
         )
         self.user_search_input.textChanged.connect(self.refresh)

@@ -75,9 +75,8 @@ class AddUserDialog(QDialog):
         self.password = QLineEdit()
         self.confirm_password = QLineEdit()
 
-        self.username.setPlaceholderText('Username')
-        self.passwd.setPlaceholderText('Password')
-        self.confirm_passwd.setPlaceholderText('Confirm password')
+        self.password.setEchoMode(QLineEdit.Password)
+        self.confirm_password.setEchoMode(QLineEdit.Password)
 
         inputs = QFormLayout()
         inputs.addRow('Username:', self.username)
@@ -92,7 +91,8 @@ class AddUserDialog(QDialog):
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
 
-        self.button_accept = buttons.buttons()
+        self.button_accept = buttons.buttons()[0]
+        self.button_accept.setEnabled(False)
 
         layout = QVBoxLayout()
         layout.addLayout(inputs)
@@ -100,12 +100,18 @@ class AddUserDialog(QDialog):
 
         self.setLayout(layout)
 
-        self.username.clicked.connect(self.validate)
-        self.password.clicked.connect(self.validate)
-        self.confirm_password.clicked.connect(self.validate)
+        self.username.textChanged.connect(self.validate)
+        self.password.textChanged.connect(self.validate)
+        self.confirm_password.textChanged.connect(self.validate)
 
     def validate(self):
-        print(self.button_accept)
+        if len(self.username.text()) == 0 or len(self.password.text()) == 0:
+            self.button_accept.setEnabled(False)
+        else:
+            if self.password.text() == self.confirm_password.text():
+                self.button_accept.setEnabled(True)
+            else:
+                self.button_accept.setEnabled(False)
 
     def get_values(self):
         return {'username': self.username.text(),

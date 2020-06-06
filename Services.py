@@ -188,7 +188,7 @@ class UserService(Service):
             'handle_add_user',
             'admin/user/add',
             data=user,
-            params=user['username']
+            package=user
         )
         QThreadPool.globalInstance().start(runnable)
 
@@ -201,7 +201,7 @@ class UserService(Service):
         runnable = RequestDeleteRunnable(
             self,
             self.session,
-            'handle_delete_book',
+            'handle_delete_user',
             'admin/user/delete',
             params={'username': user['username']},
             package=user
