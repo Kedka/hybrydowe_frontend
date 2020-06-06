@@ -118,7 +118,12 @@ class UserWidget(QWidget):
         self.__books = self.book_service.books
         search = self.book_search_input.text().lower()
         if search is not None:
-            self.__books = filter(lambda x: True if x['title'].lower().find(search) > -1 else False, self.__books)
+            self.__books = filter(
+                lambda x: True if x['title'].lower().find(search) > -1 \
+                                  or str(x['publishmentYear']).find(search) > -1 \
+                                  or any([author['surname'].find(search) > -1 for author in x['authors']]) else False,
+                self.__books
+            )
         if self.filter_choice.currentIndex() == 1:
             self.__books = filter(lambda x: True if x['assignUser'] is None else False, self.__books)
         if self.filter_choice.currentIndex() == 2:
