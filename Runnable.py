@@ -1,67 +1,34 @@
-import requests
-from PyQt5.QtCore import QRunnable, QMetaObject, Qt, Q_ARG
+from PyQt5.QtCore import QRunnable
 
 
 class RequestRunnable(QRunnable):
-    def __init__(self, parent, callback, url):
+    def __init__(self, parent, session, callback, url, params=None, package=None):
         QRunnable.__init__(self)
         self.url = 'https://library-app3.herokuapp.com/' + url
         self.parent = parent
         self.callback = callback
+        self.session = session
+        self.params = params
+        self.package = package
 
 
 class RequestGetRunnable(RequestRunnable):
     def run(self):
-        r = requests.get(self.url)
+        r = self.session.get(self.url, params=self.params)
         getattr(self.parent, self.callback)(r)
 
 
+class RequestDeleteRunnable(RequestRunnable):
+    def run(self):
+        r = self.session.delete(self.url, params=self.params)
+        getattr(self.parent, self.callback)(self.package, r)
+
+
 class RequestPostRunnable(RequestRunnable):
-    def __init__(self, parent, callback, url, data):
-        super(RequestPostRunnable, self).__init__(parent, callback, url)
+    def __init__(self, parent, session, callback, url, params=None, data=None, package=None):
+        super(RequestPostRunnable, self).__init__(parent, session, callback, url, params, package)
         self.data = data
 
     def run(self):
-        r = requests.post(self.url, json=self.data)
-        getattr(self.parent, self.callback)(self.data, r)
-
-
-class RequestDeleteRunnable(RequestRunnable):
-    def __init__(self, parent, callback, url, params):
-        super(RequestDeleteRunnable, self).__init__(parent, callback, url)
-        self.params = params
-
-    def run(self):
-        r = requests.delete(self.url, params={'id': self.params['id']})
-        getattr(self.parent, self.callback)(self.params, r)
-
-
-class RequestLoginRunnable(QRunnable):
-    def __init__(self, target):
-        QRunnable.__init__(self)
-        self.url = 'https://api.github.com/events'
-        self.target = target
-
-    def run(self):
-        r = requests.get(self.url)
-        QMetaObject.invokeMethod(
-            self.target,
-            "login",
-            Qt.QueuedConnection,
-            Q_ARG(str, r.text)
-        )
-
-
-class RequestLogoutRunnable(QRunnable):
-    def __init__(self, target):
-        QRunnable.__init__(self)
-        self.target = target
-        self.url = 'https://api.github.com/events'
-
-    def run(self):
-        r = requests.get(self.url)
-        QMetaObject.invokeMethod(
-            self.target,
-            "logout",
-            Qt.QueuedConnection
-        )
+        r = self.session.post(self.url, json=self.data, params=self.params)
+        getattr(self.parent, self.callback)(self.package, r)

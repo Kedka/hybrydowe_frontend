@@ -1,7 +1,7 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIntValidator
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QDialogButtonBox, QLineEdit, QLabel, QFormLayout, QPushButton, \
-    QSpacerItem, QWidget
+    QWidget
 
 
 class AddBookDialog(QDialog):
@@ -53,7 +53,6 @@ class AddBookDialog(QDialog):
         self.inputs.addRow('Surname:', surname)
 
     def get_values(self):
-        print(self.authors)
         return {'title': self.title.text(),
                 'publishmentYear': self.publication_year.text(),
                 'authors': [

@@ -1,3 +1,4 @@
+from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import QWidget, QPushButton, QLineEdit, QVBoxLayout, QTreeWidget, QTreeWidgetItem, \
     QComboBox, QHBoxLayout, QTabWidget, QListWidget
 
@@ -26,6 +27,10 @@ class LoginWidget(QWidget):
 
     def blockSignals(self, bool):
         self.button_login.blockSignals(bool)
+
+    def clear(self):
+        self.username.clear()
+        self.password.clear()
 
 
 class UserWidget(QWidget):
@@ -81,20 +86,21 @@ class UserWidget(QWidget):
                 self.__books[self.book_list.currentIndex().row()]
             )
         )
-        # self.button_borrow_book.clicked.connect(
-        #     lambda: self.book_service.borrow_book(
-        #         self.__books[self.book_list.currentIndex().row()]
-        #     )
-        # )
-        # self.button_return_book.clicked.connect(
-        #     lambda: self.book_service.return_book(
-        #         self.__books[self.book_list.currentIndex().row()]
-        #     )
-        # )
+        self.button_borrow_book.clicked.connect(
+            lambda: self.book_service.borrow_book(
+                self.__books[self.book_list.currentIndex().row()]
+            )
+        )
+        self.button_return_book.clicked.connect(
+            lambda: self.book_service.return_book(
+                self.__books[self.book_list.currentIndex().row()]
+            )
+        )
         self.book_search_input.textChanged.connect(self.refresh)
         self.book_list.currentItemChanged.connect(self.book_choice)
         self.button_logout.clicked.connect(parent.request_logout)
 
+    @pyqtSlot()
     def refresh(self):
         self.book_list.clear()
         self.apply_filters()
@@ -104,13 +110,13 @@ class UserWidget(QWidget):
                 book['title'],
                 str(book['publishmentYear']),
                 'Available' if book['assignUser'] is None else
-                ('Unavailable' if book['assignUser'] != self.user_id else 'Borrowed')
+                ('Unavailable' if book['assignUser']['id'] != self.user_id else 'Borrowed')
             ])
             self.book_list.addTopLevelItem(item)
 
     def apply_filters(self):
         self.__books = self.book_service.books
-        search = self.book_search_input.text()
+        search = self.book_search_input.text().lower()
         if search is not None:
             self.__books = filter(lambda x: True if x['title'].lower().find(search) > -1 else False, self.__books)
         if self.filter_choice.currentIndex() == 1:
@@ -132,10 +138,10 @@ class UserWidget(QWidget):
             self.button_borrow_book.setEnabled(True)
         else:
             self.button_borrow_book.setEnabled(False)
-        if book['assignUser'] == self.user_id:
-            self.button_return_book.setEnabled(True)
-        else:
-            self.button_return_book.setEnabled(False)
+            if book['assignUser']['id'] == self.user_id:
+                self.button_return_book.setEnabled(True)
+            else:
+                self.button_return_book.setEnabled(False)
 
     def add_book(self):
         ok, book = AddBookDialog.get_result()
@@ -146,6 +152,10 @@ class UserWidget(QWidget):
 
 class AdminWidget(QTabWidget):
     def __init__(self, parent=None):
+        self.__users = None
+
+        self.user_service = UserService(self)
+
         super(AdminWidget, self).__init__(parent)
         self.button_add_user = QPushButton('Add user')
         self.button_remove_user = QPushButton('Remove user')
@@ -176,8 +186,21 @@ class AdminWidget(QTabWidget):
         self.addTab(widget, 'Users manager')
         self.addTab(UserWidget(parent), 'Books manager')
 
-        # self.user_search_input.textChanged.connect()
+        self.user_search_input.textChanged.connect(self.refresh)
         self.button_logout.clicked.connect(parent.request_logout)
+
+    @pyqtSlot()
+    def refresh(self):
+        self.user_list.clear()
+        self.search()
+        self.user_list.addItems([user['username'] for user in self.__users])
+
+    def search(self):
+        self.__users = self.user_service.users
+        search = self.user_search_input.text().lower()
+        if search is not None:
+            self.__users = filter(lambda x: True if x['username'].lower().find(search) > -1 else False, self.__users)
+        self.__users = list(self.__users)
 
 
 class AddUser(QWidget):
@@ -207,27 +230,3 @@ class AddUser(QWidget):
 
         self.setLayout(layout)
 
-
-class AddBook(QWidget):
-    def __init__(self, parent=None):
-        super(AddBook, self).__init__(parent)
-
-        self.title = QLineEdit()
-        self.author = QLineEdit()
-
-        self.title.setPlaceholderText('Book title')
-        self.author.setPlaceholderText('Author name')
-
-        self.button_book2db = QPushButton('Add book')
-        self.button_back = QPushButton('Back')
-
-        self.button_book2db.clicked.connect(parent.add_book_to_db)
-        self.button_back.clicked.connect(parent.back)
-
-        layout = QVBoxLayout()
-        layout.addWidget(self.title)
-        layout.addWidget(self.author)
-        layout.addWidget(self.button_book2db)
-        layout.addWidget(self.button_back)
-
-        self.setLayout(layout)

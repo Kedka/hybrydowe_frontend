@@ -1,13 +1,12 @@
 import requests
-from PyQt5.QtCore import QThreadPool
+from PyQt5.QtCore import QThreadPool, QMetaObject, Qt, Q_ARG
 
 from Runnable import RequestGetRunnable, RequestPostRunnable, RequestDeleteRunnable
 
 
 class Service:
     session = None
-    # TODO: change to None
-    user_id = 1
+    user_id = None
 
     def __init__(self, parent):
         self.parent = parent
@@ -28,33 +27,43 @@ class AuthorizationService(Service):
         Service.session = requests.Session()
         runnable = RequestPostRunnable(
             self,
+            self.session,
             'handle_login',
             'user/login',
-            {'username': login, 'password': password}
+            data={'username': login, 'password': password}
         )
         QThreadPool.globalInstance().start(runnable)
 
     def handle_login(self, data, response):
         self.check_response(response)
         response = response.json()
-        self.user_id = response.get('id')
+        Service.user_id = response.get('id')
         self.user_type = response.get('type')
         self.username = response.get('username')
-        self.parent.login(self.user_type)
+        QMetaObject.invokeMethod(
+            self.parent,
+            "login",
+            Qt.QueuedConnection,
+            Q_ARG(str, self.user_type)
+        )
 
     def logout(self):
-        runnable = RequestPostRunnable(
+        runnable = RequestGetRunnable(
             self,
-            'handle_login',
-            'user/logout',
-            None
+            self.session,
+            'handle_logout',
+            'user/logout'
         )
         QThreadPool.globalInstance().start(runnable)
 
-    def handle_logout(self, data, response):
+    def handle_logout(self, response):
         self.check_response(response)
         self.session = None
-        self.parent.logout()
+        QMetaObject.invokeMethod(
+            self.parent,
+            "logout",
+            Qt.QueuedConnection
+        )
 
 
 class BookService(Service):
@@ -66,6 +75,7 @@ class BookService(Service):
     def get_books(self):
         runnable = RequestGetRunnable(
             self,
+            self.session,
             'handle_get_books',
             'books'
         )
@@ -79,9 +89,11 @@ class BookService(Service):
     def add_book(self, book):
         runnable = RequestPostRunnable(
             self,
+            self.session,
             'handle_add_book',
             'book/add',
-            book
+            data=book,
+            package=book
         )
         QThreadPool.globalInstance().start(runnable)
 
@@ -95,9 +107,11 @@ class BookService(Service):
     def delete_book(self, book):
         runnable = RequestDeleteRunnable(
             self,
+            self.session,
             'handle_delete_book',
             'book/delete',
-            book
+            params={'id': book['id']},
+            package=book
         )
         QThreadPool.globalInstance().start(runnable)
 
@@ -107,26 +121,29 @@ class BookService(Service):
         self.notify_parent()
 
     def borrow_book(self, book):
-        # TODO: pass only id or change request type
         runnable = RequestPostRunnable(
             self,
+            self.session,
             'handle_borrow_book',
             'book/borrow',
-            book
+            params={'id': book['id']},
+            package=book
         )
         QThreadPool.globalInstance().start(runnable)
 
     def handle_borrow_book(self, data, response):
         self.check_response(response)
-        self.books[self.books.index(data)].update({'assignUser': self.user_id})
+        self.books[self.books.index(data)].update({'assignUser': {'id': self.user_id}})
         self.notify_parent()
 
     def return_book(self, book):
         runnable = RequestPostRunnable(
             self,
+            self.session,
             'handle_return_book',
             'book/return',
-            book
+            params={'id': book['id']},
+            package=book
         )
         QThreadPool.globalInstance().start(runnable)
 
@@ -136,7 +153,11 @@ class BookService(Service):
         self.notify_parent()
 
     def notify_parent(self):
-        self.parent.refresh()
+        QMetaObject.invokeMethod(
+            self.parent,
+            "refresh",
+            Qt.QueuedConnection
+        )
 
 
 class UserService(Service):
@@ -146,9 +167,12 @@ class UserService(Service):
         self.get_users()
 
     def get_users(self):
-        runnable = RequestGetRunnable(self,
-                                      'handle_get_users',
-                                      'users')
+        runnable = RequestGetRunnable(
+            self,
+            self.session,
+            'handle_get_users',
+            'admin/users'
+        )
         QThreadPool.globalInstance().start(runnable)
 
     def handle_get_users(self, response):
@@ -156,5 +180,41 @@ class UserService(Service):
         self.users = response.json()
         self.notify_parent()
 
+    def add_user(self, user):
+        runnable = RequestPostRunnable(
+            self,
+            self.session,
+            'handle_add_user',
+            'admin/user/add',
+            data=user,
+            params=user['username']
+        )
+        QThreadPool.globalInstance().start(runnable)
+
+    def handle_add_user(self, data, response):
+        self.check_response(response)
+        self.users.append(data)
+        self.notify_parent()
+
+    def delete_user(self, user):
+        runnable = RequestDeleteRunnable(
+            self,
+            self.session,
+            'handle_delete_book',
+            'admin/user/delete',
+            params={'username': user['username']},
+            package=user
+        )
+        QThreadPool.globalInstance().start(runnable)
+
+    def handle_delete_user(self, data, response):
+        self.check_response(response)
+        self.users.remove(data)
+        self.notify_parent()
+
     def notify_parent(self):
-        self.parent().refresh()
+        QMetaObject.invokeMethod(
+            self.parent,
+            "refresh",
+            Qt.QueuedConnection
+        )

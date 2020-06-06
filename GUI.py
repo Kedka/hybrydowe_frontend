@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QMainWindow, QStackedWidget, QDesktopWidget, QStatusBar
-from PyQt5.QtCore import Qt, QRect
+from PyQt5.QtCore import Qt, QRect, pyqtSlot
 
 from Widgets import *
 from Services import AuthorizationService
@@ -8,7 +8,7 @@ from Services import AuthorizationService
 class LibraryApp(QMainWindow):
     def __init__(self, parent=None):
         super(LibraryApp, self).__init__(parent, flags=Qt.Window)
-        self.authorization_service = AuthorizationService(self)
+        self.authorization_service = None
 
         self.setWindowTitle('Library app')
         self.setCentralWidget(QStackedWidget())
@@ -24,14 +24,15 @@ class LibraryApp(QMainWindow):
     def request_login(self, username, password):
         self.status_bar.showMessage('Logging in')
         self.centralWidget().widget(0).blockSignals(True)
-        self.login('user')
-        # self.authorization_service.login(username, password)
+        self.authorization_service = AuthorizationService(self)
+        self.authorization_service.login(username, password)
 
+    @pyqtSlot(str)
     def login(self, user_type):
-        # print(user_type)
-        self.centralWidget().widget(0).blockSignals(False)
+        self.centralWidget().widget(0).blockSignals(True)
+        self.centralWidget().widget(0).clear()
         center = self.geometry().center()
-        if user_type == 'admin':
+        if user_type == 'A':
             self.centralWidget().addWidget(AdminWidget(self))
         else:
             self.centralWidget().addWidget(UserWidget(self))
@@ -40,70 +41,17 @@ class LibraryApp(QMainWindow):
         self.status_bar.clearMessage()
 
     def request_logout(self):
-        # runnable = RequestLogoutRunnable(self)
-        # QThreadPool.globalInstance().start(runnable)
-        self.logout()
+        self.status_bar.showMessage('Logging out')
+        self.authorization_service.logout()
 
+    @pyqtSlot()
     def logout(self):
         center = self.geometry().center()
+        self.centralWidget().widget(0).blockSignals(False)
         self.centralWidget().removeWidget(self.centralWidget().widget(1))
         self.adjust_geometry(center)
-
-    def add_user(self):
-        center = self.geometry().center()
-        add_user = AddUser(self)
-        self.centralWidget.addWidget(add_user)
-        self.centralWidget.setCurrentWidget(add_user)
-        self.adjust_geometry(center)
-        print('Add user')
-
-    def confirm_reg(self):
-        print('Confirmed')
-        self.back()
-
-    def delete_user(self):
-        center = self.geometry().center()
-        delete_user = DeleteUser(self)
-        self.centralWidget.addWidget(delete_user)
-        self.centralWidget.setCurrentWidget(delete_user)
-        self.adjust_geometry(center)
-        print('Delete user')
-
-    def add_book(self):
-        center = self.geometry().center()
-        add_book = AddBook(self)
-        self.centralWidget.addWidget(add_book)
-        self.centralWidget.setCurrentWidget(add_book)
-        self.adjust_geometry(center)
-
-    def add_book_to_db(self):
-        print('Book added')
-        self.back()
-
-    def delete_book(self):
-        center = self.geometry().center()
-        delete_book = DeleteBook(self)
-        self.centralWidget.addWidget(delete_book)
-        self.centralWidget.setCurrentWidget(delete_book)
-        self.adjust_geometry(center)
-        print('Delete book')
-
-    def back(self):
-        center = self.geometry().center()
-        self.centralWidget.removeWidget(self.centralWidget.currentWidget())
-        self.adjust_geometry(center)
-
-    def show_detail(self):
-        center = self.geometry().center()
-        book_detail = BookDetails(self)
-        self.centralWidget.addWidget(book_detail)
-        self.centralWidget.setCurrentWidget(book_detail)
-        self.adjust_geometry(center)
-        print('Details')
-
-    def place_order(self):
-        print('Order')
-        self.back()
+        self.authorization_service = None
+        self.status_bar.clearMessage()
 
     def adjust_geometry(self, center):
         self.adjustSize()
